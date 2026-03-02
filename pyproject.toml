@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "zurich-policy-chatbot"
+version = "0.1.0"
+description = "AI-powered insurance policy manager chatbot for Zurich Insurance"
+authors = ["tournemonde <servus@deepkernel.ai>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^2.24.0"
+chromadb = "0.6.3"
+onnxruntime = ">=1.14.1,<1.20.0"
+streamlit = "^1.54.0"
+python-dotenv = "^1.2.2"
+landingai-ade = "^1.6.0"
+pymupdf = "^1.27.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+ruff = "^0.15.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
