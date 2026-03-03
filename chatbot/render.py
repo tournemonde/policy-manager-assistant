@@ -4,7 +4,6 @@ from pathlib import Path
 
 import fitz  # pymupdf
 
-
 # --- Constants ---------------------------------------------------------------
 
 HIGHLIGHT_COLOR = (1.0, 0.9, 0.0)  # yellow

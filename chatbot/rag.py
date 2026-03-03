@@ -18,7 +18,7 @@ load_dotenv()
 log = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "gpt-4o"
-TOP_K = 5
+TOP_K = 3
 
 SYSTEM_PROMPT = """You are an insurance policy assistant. Your job is to answer questions \
 accurately using ONLY the policy excerpts provided below.
@@ -111,7 +111,9 @@ def query(
 
     if collection.count() == 0:
         log.warning("ChromaDB collection is empty — run chatbot/index.py first")
-        return RAGResponse(answer="The document index is empty. Please run the indexing step first.")
+        return RAGResponse(
+            answer="The document index is empty. Please run the indexing step first."
+        )
 
     # --- Retrieve ------------------------------------------------------------
     embedding = (

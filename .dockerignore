@@ -1,0 +1,15 @@
+.git
+.gitignore
+.cursor
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.env
+data
+agent-tools
+agent-transcripts

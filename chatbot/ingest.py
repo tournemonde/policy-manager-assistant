@@ -6,9 +6,9 @@ import os
 import sys
 from pathlib import Path
 
+import landingai_ade
 from dotenv import load_dotenv
 from landingai_ade import LandingAIADE
-import landingai_ade
 
 # --- Setup -------------------------------------------------------------------
 
