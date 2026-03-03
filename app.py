@@ -30,7 +30,7 @@ PROCESSED_DIR = Path("data/2_processed")
 # --- Page config -------------------------------------------------------------
 
 st.set_page_config(
-    page_title="Policy Manager Assistant",
+    page_title="My Insurance Policy Manager Assistant",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -39,46 +39,8 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    div[data-testid="stForm"] {
-        background-color: var(--secondary-background-color) !important;
-        border: 1px solid transparent !important;
-        border-radius: 0.75rem !important;
-        padding: 0.20rem 0.30rem !important;
-    }
-    div[data-testid="stForm"]:focus-within {
-        border-color: #1e3a8a !important;
-        box-shadow: 0 0 0 0.14rem rgba(30, 58, 138, 0.24) !important;
-    }
-    div[data-testid="stTextInput"] input {
-        border: 1px solid transparent !important;
-        border-radius: 0.6rem !important;
-        box-shadow: none !important;
-        background-color: transparent !important;
-        outline: none !important;
-    }
-    div[data-testid="stTextInput"] input:focus {
-        border-color: transparent !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }
-    div[data-testid="stTextInput"] > div:focus-within {
-        border-color: transparent !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }
-    div[data-testid="stFormSubmitButton"] button {
-        background-color: #111111 !important;
-        border-color: #111111 !important;
-        color: #ffffff !important;
-        border-radius: 999px !important;
-        min-height: 2.35rem !important;
-        min-width: 2.35rem !important;
-        font-size: 1.10rem !important;
-        padding: 0 !important;
-    }
-    div[data-testid="stFormSubmitButton"] button:hover {
-        background-color: #000000 !important;
-        border-color: #000000 !important;
+    .chat-history-bottom-pad {
+        height: 5.4rem;
     }
     </style>
     """,
@@ -370,7 +332,7 @@ if not st.session_state.current_citations:
 
 # --- Header ------------------------------------------------------------------
 
-st.title("🛡️ Policy Manager Assistant")
+st.title("🛡️ My Insurance Policy Manager Assistant")
 st.markdown(
     """
     The chatbot helps users understand, update, or renew their insurance policies.
@@ -398,19 +360,6 @@ if layout == "Side by side":
                 if msg["role"] == "assistant":
                     _render_citation_labels(msg.get("citations", []))
 
-        with st.form("chat_form_side_by_side", clear_on_submit=True):
-            input_col, button_col = st.columns([0.955, 0.045], gap="small")
-            with input_col:
-                prompt_text = st.text_input(
-                    "Ask about your insurance policy…",
-                    placeholder="Ask about your insurance policy…",
-                    label_visibility="collapsed",
-                )
-            with button_col:
-                send = st.form_submit_button("↑", use_container_width=True, type="primary")
-            if send and prompt_text.strip():
-                submitted_prompt = prompt_text.strip()
-
     with col_doc:
         _render_doc_panel(
             st.session_state.current_citations,
@@ -426,18 +375,37 @@ else:
                 if msg["role"] == "assistant":
                     _render_citation_expanders(msg.get("citations", []))
 
-        with st.form("chat_form_integrated", clear_on_submit=True):
-            input_col, button_col = st.columns([0.955, 0.045], gap="small")
-            with input_col:
-                prompt_text = st.text_input(
-                    "Ask about your insurance policy…",
-                    placeholder="Ask about your insurance policy…",
-                    label_visibility="collapsed",
-                )
-            with button_col:
-                send = st.form_submit_button("↑", use_container_width=True, type="primary")
-            if send and prompt_text.strip():
-                submitted_prompt = prompt_text.strip()
+st.markdown('<div class="chat-history-bottom-pad"></div>', unsafe_allow_html=True)
+
+if layout == "Integrated":
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stChatInput"] {
+            max-width: 68%;
+            margin-left: 0;
+            margin-right: auto;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+else:
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stChatInput"] {
+            width: 49%;
+            margin-left: 0;
+            margin-right: auto;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+if prompt := st.chat_input("Ask about your insurance policy…"):
+    submitted_prompt = prompt.strip()
 
 # --- Handle new input --------------------------------------------------------
 if submitted_prompt:
