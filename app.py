@@ -2,6 +2,7 @@
 
 import logging
 import os
+from collections.abc import Callable
 from pathlib import Path
 
 import streamlit as st
@@ -12,12 +13,20 @@ from chatbot.index import get_collection, index_chunks_file
 from chatbot.ingest import parse_pdf
 from chatbot.rag import Citation, RAGResponse, query
 from chatbot.render import render_page_with_highlight
-_archive_uploaded_artifacts = None
-_storage_import_error: Exception | None = None
-try:
-    from chatbot.storage import archive_uploaded_artifacts as _archive_uploaded_artifacts
-except Exception as e:  # pragma: no cover - import fallback for local/dev environments
-    _storage_import_error = e
+
+
+def _load_archive_uploaded_artifacts() -> tuple[
+    Callable[..., None] | None, Exception | None
+]:
+    try:
+        from chatbot.storage import archive_uploaded_artifacts
+
+        return archive_uploaded_artifacts, None
+    except Exception as e:  # pragma: no cover - import fallback for local/dev environments
+        return None, e
+
+
+_archive_uploaded_artifacts, _storage_import_error = _load_archive_uploaded_artifacts()
 
 # --- Setup -------------------------------------------------------------------
 

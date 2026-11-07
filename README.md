@@ -1,32 +1,39 @@
-# My Insurance Policy Manager Assistant
+# Policy Manager Assistant
 
-AI-powered policy assistant that answers insurance questions using Retrieval-Augmented Generation (RAG) over uploaded or baseline PDF policy documents.
+AI-powered **document chat** for insurance policies: users ask natural-language questions and get answers **grounded in uploaded PDF wording**, with **citations** and **highlighted source pages** in the UI.
+
+**Live demo:** [Policy Manager Assistant on Cloud Run](https://policy-manager-assistant-981308040437.europe-west1.run.app/)
 
 ## What it does
 
-- Parses policy PDFs into structured chunks using `landingai-ade`
-- Embeds and indexes chunks in local ChromaDB
-- Answers user questions with `gpt-4o` grounded on retrieved excerpts
-- Shows source citations and highlighted PDF locations in the UI
-- Supports two UI modes:
-  - Integrated (chat + expandable source previews)
-  - Side by side (chat left, document viewer right)
-- Supports document upload at runtime
+- Parses policy PDFs into structured chunks with [Landing.ai ADE](https://landing.ai/)
+- Embeds chunks and stores them in **ChromaDB** (cosine similarity)
+- Answers with **OpenAI** (`gpt-4o` by default) using retrieval-augmented generation (RAG)
+- Shows **source document + page** and renders **bbox highlights** on the PDF (PyMuPDF)
+- **Upload** new PDFs at runtime (parse → index → chat)
+- Two layouts: integrated chat + expanders, or side-by-side chat + document viewer
+- **Cloud Run** deployment with optional **GCS** baseline sync and upload archive
 
 ## Tech stack
 
-- Python 3.12
-- Poetry
-- Streamlit
-- Landing.ai ADE (`landingai-ade`)
-- OpenAI (`gpt-4o`, `text-embedding-3-small`)
-- ChromaDB (`0.6.3`)
-- PyMuPDF (`pymupdf`) for page rendering/highlighting
-- Google Cloud Storage + Cloud Run (deployment mode)
+| Layer | Tools |
+|-------|--------|
+| UI | Streamlit |
+| Packaging | Poetry, Python 3.12 |
+| Ingestion | `landingai-ade` |
+| Embeddings / LLM | OpenAI (`text-embedding-3-small`, `gpt-4o`) |
+| Vector store | ChromaDB 0.6.3 |
+| Rendering | PyMuPDF |
+| Cloud | Docker, Cloud Run, Google Cloud Storage |
 
-## Project structure
+## Architecture (summary)
 
-See full commented structure and deep internals in `docs/ARCHITECTURE.md`.
+```text
+PDF → ADE parse → chunks JSON → OpenAI embeddings → ChromaDB
+User question → embed → retrieve top-k → LLM answer + citation metadata → Streamlit UI
+```
+
+Detailed flows, component diagram, and module reference: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Local setup
 
@@ -36,70 +43,55 @@ See full commented structure and deep internals in `docs/ARCHITECTURE.md`.
 poetry install
 ```
 
-2. Create `.env` from `.env.example` and fill keys:
+2. Copy environment template and set keys:
 
-```env
-OPENAI_API_KEY=...
-LANDINGAI_API_KEY=...
-# Optional
-# OPENAI_MODEL=gpt-4o
+```bash
+cp .env.example .env
 ```
 
-3. Place baseline PDFs in `data/1_raw/` (or use existing files).
+Required locally:
 
-## Build index pipeline (local)
+- `OPENAI_API_KEY`
+- `LANDINGAI_API_KEY`
 
-1. Parse raw PDFs to chunks:
+3. Add your own policy PDFs under `data/1_raw/` (not included in this repo).
+
+## Index pipeline
 
 ```bash
 poetry run python -m chatbot.ingest
-```
-
-2. Index chunks into ChromaDB:
-
-```bash
 poetry run python -m chatbot.index
 ```
 
-3. Optional CLI RAG test:
+Optional CLI RAG smoke test:
 
 ```bash
 poetry run python -m chatbot.rag
 ```
 
-## Run the app (local)
+## Run the app
 
 ```bash
 poetry run streamlit run app.py
 ```
 
-## Deployment model (Cloud Run)
+## Cloud Run deployment
 
-This app uses a **baseline + uploads archive** model:
+Container entrypoint: `startup.py` (baseline sync from GCS, then Streamlit on `$PORT`).
 
-- `baseline/` (GCS): canonical startup dataset (raw PDFs, chunks, ChromaDB)
-- `uploads/` (GCS): user-uploaded files/chunks archive
+| Concept | Behavior |
+|---------|----------|
+| `baseline/` on GCS | Canonical dataset restored on each container start |
+| `uploads/` on GCS | Runtime uploads archived separately |
+| Restart | Reloads baseline only (uploads are not auto-loaded) |
 
-On Cloud Run startup:
+Optional variables: `GOOGLE_PROJECT_ID`, `GCS_BUCKET_NAME`, `GCS_BASELINE_PREFIX`, `GCS_UPLOADS_PREFIX`, `OPENAI_MODEL`.
 
-1. `startup.py` syncs `baseline/` into local `data/`
-2. App starts from that baseline only
+Build and deploy using your own GCP project; see `Dockerfile` and `docs/ARCHITECTURE.md`.
 
-At runtime:
+## Demo questions
 
-- Uploaded documents are parsed/indexed for the running instance
-- Upload artifacts are archived to `uploads/`
-- On next restart, app reloads baseline (not archived uploads)
-
-## Key environment variables
-
-- `OPENAI_API_KEY` (required)
-- `LANDINGAI_API_KEY` (required)
-- `OPENAI_MODEL` (optional, default `gpt-4o`)
-- `GOOGLE_PROJECT_ID` (required in Cloud Run mode)
-- `GCS_BUCKET_NAME` (enables GCS sync/archive)
-- `GCS_BASELINE_PREFIX` (default `baseline`)
-- `GCS_UPLOADS_PREFIX` (default `uploads`)
+Example prompts for policy wording documents: [`docs/questions.md`](docs/questions.md).
 
 ## Quality checks
 
@@ -108,7 +100,12 @@ poetry run ruff check .
 poetry run pytest
 ```
 
-## Documentation
+## Data and secrets
 
-- Architecture and file/function-level documentation: `docs/ARCHITECTURE.md`
+- **Do not commit** `.env`, API keys, or customer PDFs.
+- `data/` (raw PDFs, chunks, ChromaDB) is gitignored; regenerate locally or from your own GCS baseline.
+- Use `.env.example` only as a template.
 
+## Personal initiative
+
+This repository demonstrates end-to-end **document RAG**: structured PDF parsing, vector search, grounded generation, citation UX, and production-style deployment patterns—not a managed SaaS product.

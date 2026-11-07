@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "zurich-policy-chatbot"
+name = "policy-manager-assistant"
 version = "0.1.0"
-description = "AI-powered insurance policy manager chatbot for Zurich Insurance"
+description = "RAG document chat for insurance policy PDFs (Streamlit, ChromaDB, Cloud Run)"
 authors = ["tournemonde <servus@deepkernel.ai>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"

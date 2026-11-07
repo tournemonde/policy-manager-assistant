@@ -1,5 +1,7 @@
 # Architecture Documentation
 
+Personal initiative: **Policy Manager Assistant** — RAG over insurance policy PDFs with Streamlit UI and optional Cloud Run + GCS deployment. Public overview and live demo: see [README](../README.md).
+
 This document explains the system structure, data flow, and function-level behavior.
 
 ## 1) Commented folder structure
